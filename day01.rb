@@ -31,5 +31,26 @@
 # Find the Elf carrying the most Calories (in the example above it is the 4th Elf with 24000 calories).
 # How many total Calories is that Elf carrying?
 
-list = File.open('day_01.txt')
+list = File.open('day01_input.txt')
+summed = []
+elf_total = 0
 
+list.each do |calories|
+  if calories.chomp.empty?
+    summed << elf_total
+    elf_total = 0
+  else
+    elf_total += calories.chomp.to_i
+  end
+end
+
+summed.sort!
+
+## PART ONE: Answer
+
+puts "The elf with the highest calories count is carrying: #{summed.last} calories"
+
+# Find the top three Elves carrying the most Calories. How many Calories are those Elves carrying in total?
+## PART TWO: Answer
+
+puts "The three Elves carrying the most calories have a combined count of: #{summed.last(3).reduce(:+)} calories"
