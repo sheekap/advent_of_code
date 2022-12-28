@@ -1,129 +1,139 @@
-file = File.open('input.txt')
+# Class to hold methods for day 5 of Advent of Code 2022
+class SupplyStacks
+  def initialize(filename)
+    input = File.join(File.dirname(__FILE__), filename)
+    file = File.open(input)
 
-@boxes_split_each_char = []
-@boxes = []
-@directions = []
+    @boxes_split_each_char = []
+    @boxes = []
+    @directions = []
+    @shuffled_boxes = []
 
-def parse_file(file)
-  file.each do |line|
-    if line.chomp.start_with?(' ') || line.chomp.start_with?('[')
-      @boxes_split_each_char << line.chomp.chars
-    elsif line.chomp.start_with?('move')
-      row = []
+    parse_file(file)
 
-      line.split(' ').each do |el|
-        row.push(el.to_i) if el.to_i.to_s == el
+    # ToDo: cloning shuffled boxes for now so that I can compare it to the original value
+    # refactor this to shuffle the @boxes object when I'm more confident in the code.
+    @shuffled_boxes = @boxes.clone
+  end
+
+  def move_boxes
+    @directions.each do |line|
+      amount, from, to = line
+
+      from_start_index = 0
+      to_start_index = -1 # TODO: double check conditional when calculcating this index
+      boxes_to_move = []
+
+      # get the index of the first box in the "from" row
+      @shuffled_boxes.each do |row|
+        break if row[from - 1] != '   ' # empty slots take up three whitespace characters
+
+        from_start_index += 1 
       end
 
-      @directions << row
+      # get the index of the first box in the "to" row
+      @shuffled_boxes.each do |row|
+        break if row[to - 1] != '   '
+
+        to_start_index += 1
+      end
+
+      # select the desired `amount` boxes starting at the start_index of row = [calculcate_desired_row_index] column = from - 1 
+      (0...amount).each do |count|
+        row_index = from_start_index + count
+
+        boxes_to_move << @shuffled_boxes[row_index][from - 1]
+        @shuffled_boxes[row_index][from - 1] = '   '
+      end
+
+      (0...boxes_to_move.size).each do |count|
+        row_index = (to_start_index - count)
+
+        if row_index.positive? || row_index.zero?
+          @shuffled_boxes[row_index][to - 1] = boxes_to_move.shift
+        else
+          create_new_row_for_box(boxes_to_move.shift, (to - 1), @shuffled_boxes.last.size)
+        end
+      end
     end
   end
 
-  clear_whitespace_boxes
-end
+  def print_top_boxes
+    @shuffled_boxes.pop # delete last row that is just the column counts
 
-def move_boxes
-  shuffled_boxes = @boxes.clone
+    result = Array.new(@shuffled_boxes.first.size)
 
-  # puts 'boxes:'
-  # pp @boxes
-  # puts ' '
+    @shuffled_boxes.each do |row|
+      row.each_with_index do |val, index|
+        next unless result[index].nil?
 
-# @directions.each do |line|
-  # puts 'directions: '
-  # pp @directions.first
-  # puts ' '
-  amount, from, to = @directions.first
+        result[index] = val.tr('[', '').tr(']', '') if val != '   '
+      end
+    end
 
-  from_start_index = 0
-  to_start_index = 0
-  boxes_to_move = []
-
-  # get the index of the first box in the "from" row
-  shuffled_boxes.each do |row|
-    break if row[from - 1] != '   ' # empty slots take up three whitespace characters
-
-    from_start_index += 1 
+    result = result.join
   end
 
-  # get the index of the first box in the "to" row
-  shuffled_boxes.each do |row|
-    break if row[to - 1] != '   '
+  private
 
-    to_start_index += 1
+  def parse_file(file)
+    file.each do |line|
+      if line.chomp.start_with?(' ') || line.chomp.start_with?('[')
+        @boxes_split_each_char << line.chomp.chars
+      elsif line.chomp.start_with?('move')
+        row = []
+
+        line.split(' ').each do |el|
+          row.push(el.to_i) if el.to_i.to_s == el
+        end
+
+        @directions << row
+      end
+    end
+
+    clear_whitespace_boxes
   end
 
-  # select the desired boxes at the start_index of from row [from - 1] until row
-  # puts '-' * 50
-  # puts ' '
-  # puts 'selecting boxes to move'
-  # puts ' '
 
-  (0...amount).each do |count|
-    row_index = from_start_index + count
+  def clear_whitespace_boxes
+    @boxes_split_each_char.each do |row|
+      new_row = []
+      group = []
 
-    boxes_to_move << shuffled_boxes[row_index][from - 1]
-    shuffled_boxes[row_index][from - 1] = '   '
+      row.each_with_index do |char, index|
+        if index.zero?
+          group << char
+        elsif ((index + 1) % 4).zero?
+          new_row << group.join
+          group = []
+        else
+          group << char
+        end
+      end
+
+      new_row << group.join unless group.nil?
+      @boxes << new_row
+    end
   end
 
-  # puts 'boxes to move: '
-  # pp boxes_to_move
-  # puts ' '
-  # puts '-' * 50
-  # puts ' '
-
-  # starting from the top most box, move them to the desired row
-  # puts '-' * 50
-  # puts ' '
-  # puts 'shuffled boxes before moving:'
-  pp shuffled_boxes
-  puts ' '
-
-  (0...boxes_to_move.size).each do |count|
-    puts "to_start_index: #{to_start_index}"
-    row_index = to_start_index + count
-    puts "row_index: #{row_index}"
-    puts "to - 1: #{to - 1}"
-    puts "shuffled_boxes[#{row_index}][#{to - 1}]: #{shuffled_boxes[row_index][to - 1]}"
-    puts ' '
-
-    shuffled_boxes[row_index][to - 1] = boxes_to_move.shift
-  end
-
-  # puts 'boxes to move after moving: '
-  # pp boxes_to_move
-  # puts ' '
-
-  # puts ' '
-  # puts 'shuffled boxes after moving:'
-  # pp shuffled_boxes
-  # puts ' '
-  # end
-end
-
-def clear_whitespace_boxes
-  @boxes_split_each_char.each do |row|
+  def create_new_row_for_box(box, index, length)
     new_row = []
-    group = []
 
-    row.each_with_index do |char, index|
-      if index.zero?
-        group << char
-      elsif ((index + 1) % 4).zero?
-        new_row << group.join
-        group = []
+    (0...length).each do |i|
+      if i == index
+        new_row << box
       else
-        group << char
+        new_row << '   '
       end
     end
 
-    new_row << group.join unless group.nil?
-    @boxes << new_row
+    @shuffled_boxes.unshift(new_row)
   end
 end
 
-parse_file(file)
-move_boxes
+# parse_file(file)
+# move_boxes
+# puts print_top_boxes
 
 # pp @boxes_split_each_char
 # puts ' '
