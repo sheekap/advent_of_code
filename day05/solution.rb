@@ -131,11 +131,3 @@ class SupplyStacks
   end
 end
 
-# parse_file(file)
-# move_boxes
-# puts print_top_boxes
-
-# pp @boxes_split_each_char
-# puts ' '
-# puts ' '
-# pp @boxes
