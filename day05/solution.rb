@@ -12,7 +12,7 @@ class SupplyStacks
     clear_whitespace_between_columns
   end
 
-  def move_boxes
+  def move_boxes(move_multiple: false)
     @directions.each do |line|
       amount, from, to = line
 
@@ -20,7 +20,7 @@ class SupplyStacks
       to_start_index = to_column_start_index(to)
       boxes_to_move = select_boxes_to_move(amount, from, from_start_index)
 
-      move_boxes_to_desired_column(boxes_to_move, to, to_start_index)
+      move_boxes_to_desired_column(boxes_to_move, to, to_start_index, move_multiple)
     end
   end
 
@@ -126,14 +126,15 @@ class SupplyStacks
     boxes
   end
 
-  def move_boxes_to_desired_column(boxes_to_move, to, to_start_index)
+  def move_boxes_to_desired_column(boxes_to_move, to, to_start_index, move_multiple)
     (0...boxes_to_move.size).each do |count|
       row_index = (to_start_index - count)
+      box = move_multiple ? boxes_to_move.pop : boxes_to_move.shift
 
       if row_index.positive? || row_index.zero?
-        @boxes[row_index][to - 1] = boxes_to_move.shift
+        @boxes[row_index][to - 1] = box
       else
-        create_new_row_for_box(boxes_to_move.shift, (to - 1), @boxes.last.size)
+        create_new_row_for_box(box, (to - 1), @boxes.last.size)
       end
     end
   end
