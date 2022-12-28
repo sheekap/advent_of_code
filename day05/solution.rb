@@ -9,6 +9,7 @@ class SupplyStacks
     @directions = []
 
     parse_file(file)
+    clear_whitespace_between_columns
   end
 
   def move_boxes
@@ -73,9 +74,9 @@ class SupplyStacks
 
   def parse_file(file)
     file.each do |line|
-      if line.chomp.start_with?(' ') || line.chomp.start_with?('[')
+      if box_row?(line)
         @boxes_split_each_char << line.chomp.chars
-      elsif line.chomp.start_with?('move')
+      elsif direction_row?(line)
         row = []
 
         line.split(' ').each do |el|
@@ -85,11 +86,17 @@ class SupplyStacks
         @directions << row
       end
     end
-
-    clear_whitespace_boxes
   end
 
-  def clear_whitespace_boxes
+  def box_row?(line)
+    line.chomp.start_with?(' ') || line.chomp.start_with?('[')
+  end
+
+  def direction_row?(line)
+    line.chomp.start_with?('move')
+  end
+
+  def clear_whitespace_between_columns
     @boxes_split_each_char.each do |row|
       new_row = []
       group = []
