@@ -7,13 +7,8 @@ class SupplyStacks
     @boxes_split_each_char = []
     @boxes = []
     @directions = []
-    @shuffled_boxes = []
 
     parse_file(file)
-
-    # ToDo: cloning shuffled boxes for now so that I can compare it to the original value
-    # refactor this to shuffle the @boxes object when I'm more confident in the code.
-    @shuffled_boxes = @boxes.clone
   end
 
   def move_boxes
@@ -25,14 +20,14 @@ class SupplyStacks
       boxes_to_move = []
 
       # get the index of the first box in the "from" row
-      @shuffled_boxes.each do |row|
+      @boxes.each do |row|
         break if row[from - 1] != '   ' # empty slots take up three whitespace characters
 
         from_start_index += 1 
       end
 
       # get the index of the first box in the "to" row
-      @shuffled_boxes.each do |row|
+      @boxes.each do |row|
         break if row[to - 1] != '   '
 
         to_start_index += 1
@@ -42,28 +37,28 @@ class SupplyStacks
       (0...amount).each do |count|
         row_index = from_start_index + count
 
-        boxes_to_move << @shuffled_boxes[row_index][from - 1]
-        @shuffled_boxes[row_index][from - 1] = '   '
+        boxes_to_move << @boxes[row_index][from - 1]
+        @boxes[row_index][from - 1] = '   '
       end
 
       (0...boxes_to_move.size).each do |count|
         row_index = (to_start_index - count)
 
         if row_index.positive? || row_index.zero?
-          @shuffled_boxes[row_index][to - 1] = boxes_to_move.shift
+          @boxes[row_index][to - 1] = boxes_to_move.shift
         else
-          create_new_row_for_box(boxes_to_move.shift, (to - 1), @shuffled_boxes.last.size)
+          create_new_row_for_box(boxes_to_move.shift, (to - 1), @boxes.last.size)
         end
       end
     end
   end
 
   def print_top_boxes
-    @shuffled_boxes.pop # delete last row that is just the column counts
+    @boxes.pop # delete last row that is just the column counts
 
-    result = Array.new(@shuffled_boxes.first.size)
+    result = Array.new(@boxes.first.size)
 
-    @shuffled_boxes.each do |row|
+    @boxes.each do |row|
       row.each_with_index do |val, index|
         next unless result[index].nil?
 
@@ -93,7 +88,6 @@ class SupplyStacks
 
     clear_whitespace_boxes
   end
-
 
   def clear_whitespace_boxes
     @boxes_split_each_char.each do |row|
@@ -127,7 +121,6 @@ class SupplyStacks
       end
     end
 
-    @shuffled_boxes.unshift(new_row)
+    @boxes.unshift(new_row)
   end
 end
-
