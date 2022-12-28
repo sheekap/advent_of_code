@@ -16,41 +16,11 @@ class SupplyStacks
     @directions.each do |line|
       amount, from, to = line
 
-      from_start_index = 0
-      to_start_index = -1 # TODO: double check conditional when calculcating this index
-      boxes_to_move = []
+      from_start_index = from_column_start_index(from)
+      to_start_index = to_column_start_index(to)
+      boxes_to_move = select_boxes_to_move(amount, from, from_start_index)
 
-      # get the index of the first box in the "from" row
-      @boxes.each do |row|
-        break if row[from - 1] != '   ' # empty slots take up three whitespace characters
-
-        from_start_index += 1 
-      end
-
-      # get the index of the first box in the "to" row
-      @boxes.each do |row|
-        break if row[to - 1] != '   '
-
-        to_start_index += 1
-      end
-
-      # select the desired `amount` boxes starting at the start_index of row = [calculcate_desired_row_index] column = from - 1 
-      (0...amount).each do |count|
-        row_index = from_start_index + count
-
-        boxes_to_move << @boxes[row_index][from - 1]
-        @boxes[row_index][from - 1] = '   '
-      end
-
-      (0...boxes_to_move.size).each do |count|
-        row_index = (to_start_index - count)
-
-        if row_index.positive? || row_index.zero?
-          @boxes[row_index][to - 1] = boxes_to_move.shift
-        else
-          create_new_row_for_box(boxes_to_move.shift, (to - 1), @boxes.last.size)
-        end
-      end
+      move_boxes_to_desired_column(boxes_to_move, to, to_start_index)
     end
   end
 
@@ -114,6 +84,57 @@ class SupplyStacks
 
       new_row << group.join unless group.nil?
       @boxes << new_row
+    end
+  end
+
+  def from_column_start_index(from)
+    index = 0
+
+    @boxes.each do |row|
+      # empty slots take up three whitespace characters
+      break if row[from - 1] != '   '
+
+      index += 1
+    end
+
+    index
+  end
+
+  # TODO: double check conditional when calculcating this index
+  def to_column_start_index(to)
+    index = -1
+
+    @boxes.each do |row|
+      break if row[to - 1] != '   '
+
+      index += 1
+    end
+
+    index
+  end
+
+  def select_boxes_to_move(amount, from, from_start_index)
+    boxes = []
+
+    (0...amount).each do |count|
+      row_index = from_start_index + count
+
+      boxes << @boxes[row_index][from - 1]
+      @boxes[row_index][from - 1] = '   '
+    end
+
+    boxes
+  end
+
+  def move_boxes_to_desired_column(boxes_to_move, to, to_start_index)
+    (0...boxes_to_move.size).each do |count|
+      row_index = (to_start_index - count)
+
+      if row_index.positive? || row_index.zero?
+        @boxes[row_index][to - 1] = boxes_to_move.shift
+      else
+        create_new_row_for_box(boxes_to_move.shift, (to - 1), @boxes.last.size)
+      end
     end
   end
 
